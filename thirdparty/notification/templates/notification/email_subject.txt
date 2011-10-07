@@ -1,0 +1,1 @@
+{% load i18n %}{% if subject_text %}{{ subject_text }}{% else %}[{{ current_site }}]{% endif %} {% blocktrans %}{{ message }}{% endblocktrans %}

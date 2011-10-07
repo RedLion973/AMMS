@@ -1,0 +1,1 @@
+{% load i18n %}{{ subject.author.full_name }} has posted a new subject about "{{ subject.iteration }}" on the project "{{ subject.iteration.project }}". See here : http://{{ current_site }}{{ subject.get_absolute_url }}.

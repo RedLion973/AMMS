@@ -1,0 +1,234 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+
+html {
+	display: block;
+}
+
+body {
+	background-color: #FFFFFF;
+	color: #000000;
+	font: normal normal normal 12px/1.4em Verdana, Arial, sans-serif;
+	margin: 0;
+	padding: 0;
+}
+
+a img {
+	border: none;
+}
+a:link, a:visited {
+	color: #25963A;
+	text-decoration: none;
+}
+a:hover {
+	text-decoration: underline;
+}
+
+p {
+	margin-top: 0.5em;
+}
+
+h1, h2, h3, h4 {
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+}
+
+ul, ol {
+	list-style-position: inside;
+}
+
+.centered_div {
+	width: 960px;
+	margin: 0 auto;
+}
+
+.tag_item {
+        cursor: pointer;
+        padding: 0.5em !important;
+        max-width: 70px;
+        text-align: center;
+        font-size: 0.8em;
+}
+
+.bold {
+	font-weight: bold;
+}
+
+.italic {
+	font-style: italic;
+}
+
+.green {
+	color: #25963A !important;
+}
+
+.label {
+	text-align: right;
+	padding-right: 1em;
+	font-weight: bold;
+}
+
+.field  input {
+	text-align: center;
+	padding: 0.2em;
+}
+
+.help_text {
+	color: #999999;
+	font-style: italic;
+	font-size: 0.8em;
+}
+
+.submit_button {
+	text-align: center;
+	padding-top: 1.2em;
+}
+.submit_button input {
+	font-size: 0.8em;
+	padding: 0.7em 5em;
+	text-align: center; 
+	font-style: italic;
+	border: 1px solid #FFFFFF;
+	color: #FFFFFF;
+	background-color: #25963A;
+	font-weight: bold;
+	min-width: 60%;
+}
+.submit_button input:hover {
+	cursor: pointer;
+	color: #25963A;
+	border: 1px solid #25963A;
+	background-color: #E0FFB8;
+}
+
+.error {
+	text-align: center;
+	font-weight: bold;
+	font-size: 0.9em;
+	color: #555555;
+	padding: 1em;
+	margin: 1em;
+	background-color: #F7F7F7;
+	width: 50%;
+}
+
+.list {
+	list-style: inside;
+}
+
+.objects_list th {
+	padding: 0.5em 0.6em;
+	background-color: #F7F7F7;
+	color: #555555;
+	text-align: center;
+	vertical-align: middle;
+}
+.objects_list td {
+	padding: 0.2em 0.6em;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.empty_list {
+	font-weight: bold;
+	font-size: 0.8em;
+	list-style-type: none;
+	padding-left: 2em;
+}
+
+.provisional {
+        background-color: #777777;
+}
+
+.effective {
+        background-color: #25963A;
+}
+
+.timetable {
+        font-size: 0.9em;
+        padding: 0;
+        border: 1px solid #000000;
+        border-collapse: collapse;
+}
+.timetable td, .timetable th {
+        padding: 0em 0.5em;
+        border: 1px solid #000000;
+        text-align: center;
+        min-width: 3em;
+}
+.timetable th.timetable_element_name {
+        padding: 0.2em 1em;
+}
+.timetable_buttons span {
+        font-size: 0.8em !important;
+}
+
+.timetable_div {
+        display: none;
+        padding: 0.6em 1em;
+}
+
+#header {
+	background-color: #25963A;
+	color: #FFFFFF;
+	padding: 5px 55px;
+	text-align: left;
+}
+
+#sub_header {
+	background-color: #000000;
+	color: #FFFFFF;
+	padding: 5px 55px;
+	min-height: 25px;
+}
+
+#home_icon {
+	vertical-align: middle;
+}
+
+#wrapper {
+	background-color: #FFFFFF;
+	min-height: 250px;
+	padding: 20px 35px;
+}
+
+#main {
+	padding: 15px;
+}
+#main h2 {
+	font-style: italic; 
+}
+
+#contextual_actions_menu {
+	position: fixed;
+	top: 155px;
+	right: 35px;
+	padding: 15px;
+	text-align: right;
+	font-weight: bold;
+	border-style: dashed;
+	border: 2px dashed #555555;
+	width: 145px;
+	margin-right: 10px;
+	background-color: #FFFFFF; 
+}
+#contextual_actions_menu ul {
+	list-style: none;
+}
+#contextual_actions_menu ul li {
+	min-height: 10px;
+	font-size: 0.8em;
+}
+
+#footer {
+	padding: 30px;
+	text-align: center;
+	font-size: 0.9em;
+}
+#footer p {
+	text-align: center;
+	color: #888888;
+	margin: 0;
+}

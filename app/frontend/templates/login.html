@@ -1,0 +1,33 @@
+{% extends "main.html" %}
+{% load url from future %}
+
+{% block extra_css %}
+	<link href="{{ STATIC_URL }}css/login.css" rel="stylesheet" type="text/css" media="screen" />
+{% endblock %}
+
+{% block content_title %}Log In{% endblock %}
+
+{% block content %}
+	<form id="login_form" method="post" action="{% url 'login' %}">
+	{% csrf_token %}
+	<table>
+		{% if form.errors %}
+		<tr>
+		    <td colspan="2" class="error">Incorrect username or password! Please retry.</td>
+		</tr>
+		{% endif %}
+		<tr>
+		    <td class="label">Username: </td>
+		    <td class="field">{{ form.username }}</td>
+		</tr>
+		<tr>
+		    <td class="label">Password: </td>
+		    <td class="field">{{ form.password }}</td>
+		</tr>
+		<tr>
+		    <td colspan="2" class="submit_button"><input type="submit" value="Connect" /></td>
+		</tr>
+	</table>
+	<input type="hidden" name="next" value="{% if not next %}{% url home %}{% else %}{{ next }}{% endif %}" />
+	</form>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "main.html" %}
+{% load url from future %}
+
+{% block content_title %}Home{% endblock %}
+
+{% block content %}
+	<p>Welcome <span class="bold green">{{ user.get_full_name }}</span>,</p>
+	<p>Your projects:</p>
+	<br />
+	<table cellspacing="0" border="1" class="objects_list">
+		<tr><th>Name</th><th>Description</th></tr>
+		{% for project in project_list %}
+		<tr>
+			<td><a href="{{ project.get_absolute_url }}">{{ project.name }}</a></td>
+			<td>{{ project.description }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+{% endblock %}
+
+{% block contextual_actions_menu %}
+	<li><a href="{% url 'logout' %}">Déconnexion</a></li>
+	{% if user.is_staff %}
+	<li><a href="/admin/" target="_blank">Administration</a></li>
+	{% endif %}		
+{% endblock %}

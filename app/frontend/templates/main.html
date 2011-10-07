@@ -1,0 +1,60 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr"> 
+	<head>
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8" /> 
+    	<meta http-equiv="Content-Language" content="fr-fr" /> 
+	    <title>Agile Method Management & Steering</title> 
+	    <meta name="ROBOTS" content="NONE" /> 
+	    <meta name="Copyright" content="GREEN Conseil - Ludovic LEGENDART" />  
+	    <meta name="description" content="Agile Method Management & Steering Web Application." /> 
+	    <link href="{{ STATIC_URL }}css/main.css" rel="stylesheet" type="text/css" media="screen" />
+	    {% block extra_css %}{% endblock %}
+	    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.6.2.min.js"></script>
+	    <script language="javascript" type="text/javascript">
+                $(document).ready(function() {
+                    $('#contextual_actions_menu').css('opacity','0.3');
+                    $('#contextual_actions_menu').hover(
+                        function() { 
+                            $(this).css('opacity','1');
+                            $('.menu_part').show("fast");
+                        },
+                        function() { 
+                            $(this).css('opacity','0.3');
+                            $('.menu_part').hide(1000);
+                        }
+                    );
+                });
+            </script>
+	    {% block extra_js %}{% endblock %}
+	    {% block extra_head %}{% endblock %}
+	</head>
+  	<body>
+  		<div id="header">
+  			<h1>AMMS</h1>
+		</div>
+		<div id="sub_header">
+			<h3>Agile Method Management & Steering</h3>
+		</div>
+  		<div id="wrapper">
+  			<div id="contextual_actions_menu">
+                                <h3>MENU<h3>
+                                <div style="display: none;" class="menu_part">
+				<ul>
+					{% block contextual_actions_menu %}{% endblock %}
+				</ul>
+				</div>
+			</div>
+  			<div id="main">
+				<h2>{% block content_title %}{% endblock %}</h2>
+				<br/>
+				<div id="content">
+					{% block content %}{% endblock %}
+				</div>
+  			</div>
+  		</div>
+  		<div id="footer">
+			<p class="bold">&copy; 2011 - <span class="green">GREEN Conseil</span></p>
+		</div>
+  	</body>
+</html>

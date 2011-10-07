@@ -1,0 +1,119 @@
+{% load static %}
+
+<script language="javascript" type="text/javascript" src="{% get_static_prefix %}js/jquery.scrollabletable.js"></script>
+<script language="javascript" type="text/javascript">
+	$(document).ready(function() {
+	    //$('.timetable').scrollable();
+ 	});
+</script>
+
+<style type="text/css">
+        .timetable .timetable_empty {
+		width: 0px;
+		min-width: 0px;
+		padding: 0px;
+                background-color: #000000;
+	}
+</style>
+ 
+<div style="float: left;">
+	<table class="timetable" cellspacing="0">
+		<thead>
+			<tr>
+				<th rowspan="3" colspan="2">TIMETABLE</th>
+				<th class="timetable_empty">&nbsp;</th>
+			</tr>
+			<tr>
+				<th class="timetable_empty">&nbsp;</th>
+			</tr>
+			<tr>
+				<th class="timetable_empty">&nbsp;</th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for element in elements_list %}
+			{% if element.rowspan == 2 %}
+			<tr class="first">
+				<th class="timetable_element_name" rowspan="{{ element.rowspan }}">{{ element.name }}</th>
+				<th>Provisional</th>
+				<td class="timetable_empty">&nbsp;</td>
+			</tr>
+			<tr>
+				<th>Effective</th>
+				<td class="timetable_empty">&nbsp;</td>
+			</tr>
+			{% else %}
+			<tr class="first">
+				<th rowspan="{{ element.rowspan }}">{{ element.name }}</th>
+				{% if element.timetable == 0 %}
+				<th>Provisional</th>
+				{% else %}
+				<th>Effective</th>
+				{% endif %}
+				<td class="timetable_empty">&nbsp;</td>
+			</tr>
+			{% endif %}
+		{% endfor %}
+		</tbody>
+	</table>	
+</div>      
+<div style="overflow-x: auto; max-width: 50%;">
+	<div>
+		<table class="timetable" cellspacing="0">
+			<tr>
+				{% for month in timetable_headers %}
+				<th colspan="{{ month.days|length }}">{{ month.name }} - {{ month.year }}</th>
+				{% endfor %}
+			</tr>
+			<tr>
+				{% for month in timetable_headers %}
+					{% for day in month.days %}
+					<td>{{ day|date:"D" }}</td>
+					{% endfor %}
+				{% endfor %}
+			</tr>
+			<tr>
+				{% for month in timetable_headers %}
+					{% for day in month.days %}
+					<td>{{ day.day }}</td>
+					{% endfor %}
+				{% endfor %}
+			</tr>
+		</table>
+	</div>
+	<div>
+		<table class="timetable" cellspacing="0">
+		{% for element in elements_list %}
+			{% if element.rowspan == 2 %}
+			<tr class="first">
+				{% for month in timetable_headers %}
+					{% for day in month.days %}
+					<td {% if element.provisional_start_date <= day and element.provisional_end_date >= day %}class="provisional"{% endif %}>&nbsp;</td>
+					{% endfor %}
+				{% endfor %}
+			</tr>
+			<tr>
+				{% for month in timetable_headers %}
+					{% for day in month.days %}
+					<td {% if element.effective_start_date <= day and element.effective_end_date >= day %}class="effective"{% endif %}>&nbsp;</td>
+					{% endfor %}
+				{% endfor %}
+			</tr>
+			{% else %}
+			<tr class="first">
+				{% for month in timetable_headers %}
+					{% for day in month.days %}
+						{% if element.timetable == 0 %}
+						<td {% if element.provisional_start_date <= day and element.provisional_end_date >= day %}class="provisional"{% endif %}>&nbsp;</td>
+						{% else %}
+						<td {% if element.effective_start_date <= day and element.effective_end_date >= day %}class="effective"{% endif %}>&nbsp;</td>
+						{% endif %}
+					{% endfor %}
+				{% endfor %}
+			</tr>
+			{% endif %}
+		{% endfor %}
+		</table>
+	</div>
+</div>
+<div style="clear: both;">&nbsp;</div>

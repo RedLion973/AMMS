@@ -1,0 +1,1 @@
+{% load i18n %}{{ reply.author.full_name }} has posted a new reply to the subject "{{ reply.subject }}" about "{{ reply.subject.iteration }}" on the project "{{ reply.subject.iteration.project }}". See here : http://{{ current_site }}{{ reply.subject.get_absolute_url }}#reply_{{ reply.id }}.

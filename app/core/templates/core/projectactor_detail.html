@@ -1,0 +1,76 @@
+{% extends "core/project_detail.html" %}
+{% load url from future %}
+{% load timetable %}
+{% load sorting_tags %}
+{% load pagination_tags %}
+
+{% block extra_css %}
+    <link href="{{ STATIC_URL }}css/south-street/jquery-ui-1.8.16.custom.css" rel="stylesheet" type="text/css" media="screen" />
+{% endblock %}
+
+{% block extra_js %}
+        <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jquery-ui-1.8.16.custom.min.js"></script>
+        <script language="javascript" type="text/javascript">
+                $(document).ready(function() {
+                        $('.timetable_buttons').button();
+                        $('#hide').hide();
+                        $('#hide').click(function() {
+                                $('.timetable_div').hide('slow');
+                                $('.timetable_buttons').toggle();
+                        });
+                        $('#show').click(function() {
+                                $('.timetable_div').show('slow');
+                                $('.timetable_buttons').toggle();
+                        });
+                });
+        </script>
+{% endblock %}
+
+
+{% block content_title %}
+	{{ block.super }}
+	| <a href="{{ actor.get_absolute_url }}">{{ actor.full_name }}</a>
+{% endblock %}
+
+{% block content %}
+    <div>
+        E-mail: <a href="mailto://{{ actor.user.email }}">{{ actor.user.email }}</a>
+        {% if actor.user.get_profile.company %}<br />Company: {{ actor.user.get_profile.company }}{% endif %}
+        {% if actor.user.get_profile.phone1 %}<br />Phone 1: {{ actor.user.get_profile.phone1 }}{% endif %}
+        {% if actor.user.get_profile.phone2 %}<br />Phone 2: {{ actor.user.get_profile.phone2 }}{% endif %}
+    </div>
+    <br />
+    <h4>Project Roles</h4>
+    <table cellspacing="0" border="1" class="objects_list">
+            <tr>
+                <th>Role</th>
+                <th>Description</th>
+            </tr>
+            {% for role in actor.project_roles.all %}
+            <tr>
+                    <td>{{ role }}</td>
+                    <td>{{ role.description }}</td>
+            </tr>
+            {% endfor %}
+    </table>
+    <br />
+    <h4>Business Roles</h4>
+    <table cellspacing="0" border="1" class="objects_list">
+            <tr>
+                <th>Role</th>
+                <th>Description</th>
+            </tr>
+            {% for role in actor.business_roles.all %}
+            <tr>
+                    <td>{{ role }}</td>
+                    <td>{{ role.description }}</td>
+            </tr>
+            {% endfor %}
+    </table>
+    <br />
+{% endblock %}
+
+{% block contextual_actions_menu %}
+	<li><a href="{{ project.get_absolute_url }}">Back to {{ project.name }}</a></li>
+	{{ block.super }}
+{% endblock %}

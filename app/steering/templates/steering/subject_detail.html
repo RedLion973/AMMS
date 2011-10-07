@@ -1,0 +1,75 @@
+{% extends "steering/iteration_detail.html" %}
+{% load url from future %}
+
+{% block extra_css %}
+    <link href="{{ STATIC_URL }}css/steering.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="{{ STATIC_URL }}css/south-street/jquery-ui-1.8.16.custom.css" rel="stylesheet" type="text/css" media="screen" />
+{% endblock %}
+
+{% block extra_js %}
+	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jquery-ui-1.8.16.custom.min.js"></script>
+	<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jquery.validate.js"></script>
+	{% with reply_form as form %}
+	{{ form.media }}
+    {% endwith %}
+	<script language="javascript" type="text/javascript">
+		$(document).ready(function() {
+            $('#go_to_reply').button(); 
+			$('#add_reply_submit').click(function() {
+			    var content = tinyMCE.activeEditor.getContent(); 
+			    $('#id_content').val(content);
+			});
+			$('#add_reply_form').validate();
+		});
+	</script>
+{% endblock %}
+
+{% block content_title %}
+	{{ block.super }}
+	| <a href="{{ subject.get_absolute_url }}">{{ subject.name }}</a>
+{% endblock %}
+
+{% block content %}
+    <p><img src="{{ subject.state.icon.url }}" /> {{ subject.state }}</p>
+    <br />
+    <p><span class="green bold">{{ subject.author.full_name }}</span> wrote:</p>
+    <div class="subject_content ui-widget-content ui-corner-all">{{ subject.content|safe }}</div>
+    <p class="subject_meta">created at: {{ subject.created_at }} | last update: {{ subject.updated_at }}</p>
+    {% with replies.count as replies_count %}
+    <p class="subject_meta">total repl{{ replies_count|pluralize:"y,ies" }}: {{ replies_count }}</p>
+    {% endwith %}
+    <br />
+    <a id="go_to_reply" href="#add_reply" style="color: #FFF; font-size: 0.9em;">Reply</a>
+    {% if replies.all %}
+    <hr/>
+        {% for reply in replies.all %}
+            <div id="reply_{{ reply.id }}" class="subject_content ui-widget-content ui-corner-all">
+                <p><span class="green bold">{{ reply.author.full_name }}</span> replied:<p>
+                <h4 class="ui-widget-header ui-corner-all">{{ reply.title }}</h4>
+                <div>{{ reply.content|safe }}</div>
+                <p class="subject_meta">created at: {{ reply.created_at }} | last update: {{ reply.updated_at }}</p>
+            </div>
+        {% endfor %}
+    {% endif %}
+    <hr/>
+    <div id="add_reply" class="ui-widget-content ui-corner-all">
+		<h4 class="ui-widget-header ui-corner-all">New reply</h4>
+		{% with reply_form as form %}
+    	<form id="add_reply_form" action="{% url 'reply-create' project_slug=project.slug iteration_slug=iteration.slug subject_id=subject.id subject_slug=subject.slug %}" method="post">
+			{% csrf_token %}
+			{% for field in form %}
+			<p class="bold">{{ field.label_tag }}:</p>
+			<p>{{ field }}</p><br />
+			{% endfor %}
+	        <table width="100%">
+	             <tr><td class="submit_button"><input id="add_reply_submit" type="submit" name="submit" value="Post" /></td></tr>
+	        </table>
+		</form>
+		{% endwith %}
+    </div>
+{% endblock %}
+
+{% block contextual_actions_menu %}
+	<li><a href="{{ iteration.get_absolute_url }}">Back to {{ iteration.name }}</a></li>
+	{{ block.super }}
+{% endblock %}

@@ -1,0 +1,4 @@
+{% load i18n %}
+{% load url from future %}
+
+{{ subject.author.full_name }} has posted a new subject about "{{ subject.iteration }}" on the project "{{ subject.iteration.project }}". See <a href="http://{{ current_site }}{{ subject.get_absolute_url }}">here</a>.

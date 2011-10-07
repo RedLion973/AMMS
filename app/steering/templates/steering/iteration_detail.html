@@ -1,0 +1,80 @@
+{% extends "core/project_detail.html" %}
+{% load url from future %}
+{% load timetable %}
+{% load sorting_tags %}
+{% load pagination_tags %}
+
+{% block extra_css %}
+    <link href="{{ STATIC_URL }}css/steering.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="{{ STATIC_URL }}css/south-street/jquery-ui-1.8.16.custom.css" rel="stylesheet" type="text/css" media="screen" />
+{% endblock %}
+
+{% block extra_js %}
+        <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jquery-ui-1.8.16.custom.min.js"></script>
+        <script language="javascript" type="text/javascript">
+                $(document).ready(function() {
+                        $('.timetable_buttons').button();
+                        $('#hide').hide();
+                        $('#hide').click(function() {
+                                $('.timetable_div').hide('slow');
+                                $('.timetable_buttons').toggle();
+                        });
+                        $('#show').click(function() {
+                                $('.timetable_div').show('slow');
+                                $('.timetable_buttons').toggle();
+                        });
+                });
+        </script>
+{% endblock %}
+
+
+{% block content_title %}
+	{{ block.super }}
+	| <a href="{{ iteration.get_absolute_url }}">{{ iteration.name }}</a>
+{% endblock %}
+
+{% block content %}
+	<div>{{ iteration.description|safe }}</div>
+	<br />
+    <h4>Timetable</h4>
+    <button class="timetable_buttons" id="show">Show timetable</button>
+    <button class="timetable_buttons" id="hide">Hide timetable</button>
+    <div class="timetable_div">
+    <br />
+    {% timetable elements_list %}
+    <br />
+    </div>
+    <br />
+    <h4>Actions</h4>
+    <p><a href="{% url 'subject-create' project_slug=project.slug iteration_slug=iteration.slug %}">New subject</a></p>
+    <br />
+    <h4>Subjects</h4>
+    <p>Number of subjects : {{ subjects.count }}</a></p>
+    <br />
+    {% autosort subjects %}
+    {% autopaginate subjects 10 %}
+    <table cellspacing="0" border="1" class="objects_list">
+            <tr>
+            	<th>{% anchor name Name %}</th>
+            	<th>{% anchor author Author %}</th>
+            	<th>{% anchor created_at Created At %}</th>
+            	<th>{% anchor state State %}</th>
+            	<th>Replies</th>
+            </tr>
+            {% for subject in subjects %}
+            <tr>
+                    <td><a href="{{ subject.get_absolute_url }}">{{ subject.name }}</a></td>
+                    <td>{{ subject.author }}</td>
+                    <td>{{ subject.created_at }}</td>
+                    <td>{{ subject.state }}</td>
+                    <td>{{ subject.replies.all.count }}</td>
+            </tr>
+            {% endfor %}
+    </table>
+    {% paginate %}
+{% endblock %}
+
+{% block contextual_actions_menu %}
+	<li><a href="{{ project.get_absolute_url }}">Back to {{ project.name }}</a></li>
+	{{ block.super }}
+{% endblock %}

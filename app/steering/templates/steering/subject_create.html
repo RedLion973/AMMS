@@ -1,0 +1,61 @@
+{% extends "steering/iteration_detail.html" %}
+{% load url from future %}
+
+{% block extra_head %}{{ form.media }}{% endblock %}
+
+{% block extra_css %}
+    <link href="{{ STATIC_URL }}css/south-street/jquery-ui-1.8.16.custom.css" rel="stylesheet" type="text/css" media="screen" />
+{% endblock %}
+
+{% block extra_js %}
+        <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jquery-ui-1.8.16.custom.min.js"></script>
+        <script language="javascript" type="text/javascript">
+                $(document).ready(function() {
+                        $('.tag_item').click(function() {
+                                var val = $('input[name=tags]').val();
+                                var new_tag = $(this).text();
+                                var tags = val.split(',');
+                                for(var i=0; i < tags.length; i++) {
+                                	if(new_tag == tags[i]) {
+                                        	return false;
+                                        }
+                                	else {
+                                        	$('input[name=tags]').val(val + new_tag + ',');
+                                        }
+			        }
+                        });
+                });
+        </script>
+{% endblock %}
+
+{% block content_title %}
+	{{ block.super }}
+	| New Subject
+{% endblock %}
+
+{% block content %}
+	<p>Complete the following form to submit a new subject</p>
+	<br />
+    <h4>New Subject</h4>
+    <table>
+         <form action="" method="post">
+             {% csrf_token %}
+             {% for field in form %}
+                 {% if field.errors %}
+                 <tr><td colspan="2">{{ field.errors }}</td></tr>
+                 {% endif %}
+                 <tr><td class="label">{{ field.label_tag }}: </td><td class="field">{{ field }}</td></tr>
+             {% endfor %}
+             <tr><td class="label">Tags examples on this project:</td><td>{% if tags_already_used %}{% for tag in tags_already_used %}<div class="tag_item green bold ui-widget-content ui-corner-all">{{ tag.name }}</div>{% endfor %}{% else %}Aucun{% endif %}</td></tr>
+             <tr><td class="label">Tags: </td><td class="field"><input name="tags" type="text" size="50" /></td></tr>
+             <tr><td>&nbsp;</td><td class="help_text">Enter each tag here. Separate them by a comma</td></tr>
+             <tr><td>&nbsp;</td><td class="submit_button"><input type="submit" value="Post" /></td></tr>
+         </form>
+    </table>	
+    <br />
+{% endblock %}
+
+{% block contextual_actions_menu %}
+	<li><a href="{{ iteration.get_absolute_url }}">Back to {{ iteration.name }}</a></li>
+	{{ block.super }}
+{% endblock %}

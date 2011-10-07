@@ -1,0 +1,28 @@
+hr {
+    margin: 1em 0em;
+}
+
+.subject_content {
+    padding: 0.7em 1em;
+    margin: 1em 0em;
+    font-size: 0.9em;
+}
+.subject_content ul, .subject_content ol {
+    list-style: inside;
+}
+
+.subject_meta {
+    font-style: italic;
+    font-size: 0.8em;
+}
+
+#add_reply {
+	margin: 1em 0em;
+	padding: 0.7em 1em;
+}
+#add_reply h4, .subject_content h4 {
+	padding: 0.5em;
+}
+#add_reply table.mceLayout {
+	width: 100% !important;
+}

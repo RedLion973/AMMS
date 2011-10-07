@@ -1,0 +1,30 @@
+{% extends "main.html" %}
+{% load url from future %}
+
+{% block extra_js %}}
+	<script language="javascript" type="text/javascript">
+		$(document).ready(function() {
+            $('#go_back').click(function() {
+			    history.back(); 
+			    return false;
+			});
+		});
+	</script>
+{% endblock %}
+
+{% block content_title %}<img src="{{ STATIC_URL }}img/forbidden_icon.png" height="24px" width="24px" /> Forbidden !{% endblock %}
+
+{% block content %}
+	<p>Oops! Sorry <span class="bold green">{{ user.get_full_name }}</span>,</p>
+	<p>But it occurs you are not allowed to access this page.</p>
+	<br />
+	<p>Go back: <a id="go_back" href="#" title="Go back"><img src="{{ STATIC_URL }}img/go_back_icon.png" alt="Go Back" height="24px" width="24px" /></a></p>
+{% endblock %}
+
+{% block contextual_actions_menu %}
+	<li><a href="{% url 'home' %}" title="Home"><img id="home_icon" src="{{ STATIC_URL }}img/home_icon.png" alt="Home" height="11px" width="11px" /> Home</a></li>
+	<li><a href="{% url 'logout' %}">Déconnexion</a></li>
+	{% if user.is_staff %}
+	<li><a href="/admin/" target="_blank">Administration</a></li>
+	{% endif %}		
+{% endblock %}
