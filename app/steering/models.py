@@ -11,6 +11,7 @@ from django.core import serializers
 from app.core.models import Project, ProjectActor
 from app.core import fields
 from thirdparty.guardian.shortcuts import assign
+from thirdparty.xlwt import Workbook
 
 class Tag(models.Model):
     name = models.SlugField(u'name', unique=True)
@@ -130,6 +131,10 @@ class Subject(models.Model):
     
     def __unicode__(self):
         return u'%s' % (self.name)
+    
+    def _get_total_replies(self):
+        return self.replies.all().count()
+    total_replies = property(_get_total_replies)
 
     @models.permalink
     def get_absolute_url(self):
@@ -162,27 +167,38 @@ class Reply(models.Model):
     class Meta:
         verbose_name = u'Reply'
         verbose_name_plural = u'Replies'
-        permissions = (
-            ('create_reply', 'Create reply'),
-        )
 
 class Report(models.Model):
     date = models.DateField(u'date')
     project = models.ForeignKey(Project, verbose_name=u'project', related_name=u'reports')
-    current_iteration = fields.JSONField(u'current iteration')
+    current_iteration = models.ForeignKey(Iteration, verbose_name=u'current iteration', related_name='reports_in_which_is_current')
     new_subjects = fields.JSONField(u'new subjects')
     open_subjects = fields.JSONField(u'open subjects')
     closed_solved_subjects = fields.JSONField(u'closed solved subjects')
     closed_unsolved_subjects = fields.JSONField(u'closed unsolved subjects')
-    upcoming_iterations = fields.JSONField(u'upcoming iterations')
-    completed_iterations = fields.JSONField(u'completed iterations')
+    upcoming_iterations = models.ManyToManyField(Iteration, verbose_name=u'upcoming iterations', related_name='reports_in_which_is_upcoming', null=True, blank=True)
+    completed_iterations = models.ManyToManyField(Iteration, verbose_name=u'completed iterations', related_name='reports_in_which_is_completed', null=True, blank=True)
+    file = models.FileField(u'report file', upload_to='report_files/')
  
     def __unicode__(self):
-        return u'Repor - %s' % (self.date)
+        return u'Report - %s' % (self.date)
+    
+    @models.permalink
+    def get_absolute_url(self):
+        return ('project-detail', [str(self.project.slug), str(self.id)])
 
     class Meta:
         verbose_name = u'Report'
         verbose_name_plural = u'Reports'
+        permissions = (
+            ('view_report', 'View report'),
+        )
+
+def create_report_permissions(sender, instance, created, **kwargs):
+    group = Group.objects.get(name=instance.project.name)
+    assign('view_report', group, instance)
+                
+post_save.connect(create_report_permissions, sender=Report)
         
 def create_state(name, rank, type, icon, verbosity=1):
     try:
@@ -206,16 +222,91 @@ def create_state(name, rank, type, icon, verbosity=1):
         if verbosity > 1:
             print "Created %s State" % name
 
-def generate_state(project):
+def generate_report(project):
     today = date.today()
     try:
         report = Report.objects.get(date=today, project=project)
     except Report.DoesNotExist:
         json_serializer = serializers.get_serializer("json")()
         try:
-            current_i = Iteration.objects.get(project=project, current=1)
-            current_iteration = json_serializer.serialize(Iteration.objects.get(project=project, current=1), fileds=('name','description','total_subjects','get_absolute_url'), ensure_ascii=False)
-            new_subjects = json_serializer.serialize(Subject.objects.filter(iteration=current_i, created_at__gte=(today - timedelta(days=3))), fileds=('name','total_subjects'), ensure_ascii=False)
+            current_iteration = Iteration.objects.get(project=project, current=1)
+            new_subjects_list = Subject.objects.filter(iteration=current_iteration, created_at__gte=(today - timedelta(days=3)))
+            new_subjects = {}
+            total_replies = 0
+            for ns in new_subjects_list:
+                new_subjects[ns.id] = {}
+                new_subjects[ns.id].update({
+                    'name': ns.name,
+                    'state': ns.state.name,
+                    'total_replies': ns.total_replies
+                })
+                total_replies += ns.total_replies
+            new_subjects.update({
+                'total': len(new_subjects_list),
+                'replies': total_replies
+            })
+            open_subjects_list = Subject.objects.filter(iteration=current_iteration, state=State.objects.get(name='Open'))
+            open_subjects = {}
+            total_replies = 0
+            for ops in open_subjects_list:
+                open_subjects[ops.id] = {}
+                open_subjects[ops.id].update({
+                    'name': ops.name,
+                    'total_replies': ops.total_replies
+                })
+                total_replies += ops.total_replies
+            open_subjects.update({
+                'total': len(open_subjects_list),
+                'replies': total_replies
+            })
+            closed_solved_subjects_list = Subject.objects.filter(iteration=current_iteration, state=State.objects.get(name='Closed [Solved]'))
+            closed_solved_subjects = {}
+            total_replies = 0
+            for css in closed_solved_subjects_list:
+                closed_solved_subjects[css.id] = {}
+                closed_solved_subjects[css.id].update({
+                    'name': css.name,
+                    'total_replies': css.total_replies
+                })
+                total_replies += css.total_replies
+            closed_solved_subjects.update({
+                'total': len(closed_solved_subjects_list),
+                'replies': total_replies
+            })
+            closed_unsolved_subjects_list = Subject.objects.filter(iteration=current_iteration, state=State.objects.get(name='Closed [Unsolved]'))
+            closed_unsolved_subjects = {}
+            total_replies = 0
+            for cus in closed_unsolved_subjects_list:
+                closed_unsolved_subjects[cus.id] = {}
+                closed_unsolved_subjects[cus.id].update({
+                    'name': cus.name,
+                    'total_replies': cus.total_replies
+                })
+                total_replies += cus.total_replies
+            closed_unsolved_subjects.update({
+                'total': len(closed_unsolved_subjects_list),
+                'replies': total_replies
+            })
+            report = Report(
+                date=today, 
+                project=project, 
+                current_iteration=current_iteration, 
+                new_subjects=json.dumps(new_subjects), 
+                open_subjects=json.dumps(open_subjects),
+                closed_solved_subjects=json.dumps(closed_solved_subjects),
+                closed_unsolved_subjects=json.dumps(closed_unsolved_subjects)
+            )
+            report.save()
+            for iter in project.iterations.all():
+                if iter.rank > report.current_iteration.rank and iter.state != State.objects.get(name='Finished'):
+                    report.upcoming_iterations.add(iter)
+                if iter.rank < report.current_iteration.rank and iter.state == State.objects.get(name='Finished'):
+                    report.completed_iterations.add(iter)
+            report.save()
+            report_file = Workbook()
+            sheet = report_file.add_sheet(project + ' - Report - ' + str(report.date))
+            sheet.write(0,1,'Report')
+            sheet.write(2,0,'Current iteration')
         except Iteration.DoesNotExist:
             pass
         

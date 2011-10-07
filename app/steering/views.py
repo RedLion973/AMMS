@@ -1,4 +1,4 @@
-from django.views.generic import DetailView, CreateView
+from django.views.generic import ListView, DetailView, CreateView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.core.urlresolvers import reverse
@@ -8,8 +8,44 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import ImproperlyConfigured
 from app.frontend.views import PermissionRequiredMixin
 from app.core.models import Project, ProjectActor
-from app.steering.models import Iteration, Subject, Tag, State, Reply
+from app.steering.models import Iteration, Subject, Tag, State, Reply, Report
 from app.steering.forms import SubjectForm, ReplyForm
+
+class ReportListView(PermissionRequiredMixin, ListView):
+    permission_required = 'core.view_project'
+    context_object_name = "reports_list"
+    template_name = "steering/reports_list.html"
+    
+    def get_queryset(self, **kwargs):
+        return Report.objects.filter(project=Project.objects.get(slug=self.kwargs['project_slug']))
+    
+    def get_object(self, **kwargs):
+        object = Project.objects.get(slug=self.kwargs['project_slug'])
+        return object
+
+    def get_context_data(self, **kwargs):
+        context = super(ReportListView, self).get_context_data(**kwargs)
+        context.update({
+            'project': self.get_object()
+        })
+        return context
+
+class ReportDetailView(PermissionRequiredMixin, DetailView):
+    permission_required = 'steering.view_report'
+    context_object_name = "report"
+    model = Report
+    template_name = "steering/report_detail.html"
+    
+    def get_object(self, **kwargs):
+        object = Report.objects.get(id=self.kwargs['report_id'])
+        return object
+
+    def get_context_data(self, **kwargs):
+        context = super(ReportDetailView, self).get_context_data(**kwargs)
+        context.update({
+            'project': Project.objects.get(slug=self.kwargs['project_slug'])
+        })
+        return context
 
 class IterationDetailView(PermissionRequiredMixin, DetailView):
     permission_required = 'steering.view_iteration'
