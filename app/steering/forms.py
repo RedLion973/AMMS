@@ -10,6 +10,12 @@ class IterationForm(forms.ModelForm):
     class Meta:
         model = Iteration
 
+class SubjectAdminForm(forms.ModelForm):
+    state = forms.ModelChoiceField(queryset=State.objects.filter(type='subject'))
+
+    class Meta:
+        model = Subject
+
 class SubjectForm(forms.ModelForm):
     content = forms.CharField(widget=TinyMCE(attrs={'cols': 100, 'rows': 10}))
 
