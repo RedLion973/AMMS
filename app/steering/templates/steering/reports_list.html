@@ -1,1 +1,35 @@
+{% extends "core/project_detail.html" %}
+{% load url from future %}
+{% load sorting_tags %}
+{% load pagination_tags %}
 
+{% block content_title %}
+	{{ block.super }}
+	| <a href="{% url 'reports-list' project.slug %}">Reports List</a>
+{% endblock %}
+
+{% block content %}
+    <h4>Reports List</h4>
+    <p>Last report: <a href="{{ last_report.get_absolute_url }}">{{ last_report }}</a></p>
+    <br />
+    {% autosort reports_list %}
+    {% autopaginate reports_list 15 %}
+    <table cellspacing="0" border="1" class="objects_list">
+            <tr>
+            	<th>{% anchor current_iteration Iteration %}</th>
+            	<th>{% anchor date Date %}</th>
+            </tr>
+            {% for report in reports_list %}
+            <tr>
+                    <td>{{ report.current_iteration }}</td>
+                    <td><a href="{{ report.get_absolute_url }}">Report of {{ report.date }}</a></td>
+            </tr>
+            {% endfor %}
+    </table>
+    {% paginate %}
+{% endblock %}
+
+{% block contextual_actions_menu %}
+	<li><a href="{{ project.get_absolute_url }}">Back to {{ project.name }}</a></li>
+	{{ block.super }}
+{% endblock %}

@@ -28,29 +28,30 @@
 
 {% block content %}
 	<p>{{ project.description }}</p>
+	<p><a href="{% url 'reports-list' project.slug %}">See reports list</a></p>
 	<br /><br />
-        <h4>Timetable</h4>
-        <button class="timetable_buttons" id="show">Show timetable</button>
-        <button class="timetable_buttons" id="hide">Hide timetable</button>
-        <div class="timetable_div">
-        <br />
-        {% timetable elements_list %}
-        <br />
-        </div>
-        <br />
-        <br />
-        <h4>Iterations</h4>
-        <table cellspacing="0" border="1" class="objects_list">
-                <tr><th>Name</th><th>Description</th><th>State</th></tr>
-                {% for iteration in iterations %}
-                <tr>
-                        <td><a href="{{ iteration.get_absolute_url }}">{{ iteration.name }}</a></td>
-                        <td style="text-align: left;">{{ iteration.description|safe }}</td>
-                        <td>{{ iteration.state }}</td>
-                </tr>
-                {% endfor %}
-        </table>
-        <br />
+    <h4>Timetable</h4>
+    <button class="timetable_buttons" id="show">Show timetable</button>
+    <button class="timetable_buttons" id="hide">Hide timetable</button>
+    <div class="timetable_div">
+    <br />
+    {% timetable elements_list %}
+    <br />
+    </div>
+    <br />
+    <br />
+    <h4>Iterations</h4>
+    <table cellspacing="0" border="1" class="objects_list">
+        <tr><th>Name</th><th>Description</th><th>State</th></tr>
+        {% for iteration in iterations %}
+        <tr>
+            <td><a href="{{ iteration.get_absolute_url }}">{{ iteration.name }}</a></td>
+            <td style="text-align: left;">{{ iteration.description|safe }}</td>
+            <td>{{ iteration.state }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br />
 	<h4>Project actors</h4>
 	<table cellspacing="0" border="1" class="objects_list">
 		<tr><th>Name</th><th>Project Roles</th><th>Business Roles</th></tr>

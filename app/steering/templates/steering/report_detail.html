@@ -1,0 +1,239 @@
+{% extends "steering/reports_list.html" %}
+{% load url from future %}
+{% load timetable %}
+
+{% block extra_css %}
+    <link href="{{ STATIC_URL }}css/steering.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="{{ STATIC_URL }}css/south-street/jquery-ui-1.8.16.custom.css" rel="stylesheet" type="text/css" media="screen" />
+{% endblock %}
+
+{% block extra_js %}
+    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jquery-ui-1.8.16.custom.min.js"></script>
+    <script language="javascript" type="text/javascript">
+	    $(document).ready(function() {
+            $('.timetable_buttons').button();
+            $('#hide').hide();
+            $('#hide').click(function() {
+                    $('.timetable_div').hide('slow');
+                    $('.timetable_buttons').toggle();
+            });
+            $('#show').click(function() {
+                    $('.timetable_div').show('slow');
+                    $('.timetable_buttons').toggle();
+            });
+            $('.chart_buttons').button();
+            $('#hide_chart').hide();
+            $('#chart_div').hide();
+            $('#chart_legend').hide();
+            $('#hide_chart').click(function() {
+                    $('#chart_div').hide('slow');
+                    $('#chart_legend').hide('slow');
+                    $('.chart_buttons').toggle();
+            });
+            $('#show_chart').click(function() {
+                    $('#chart_div').show('slow');
+                    $('#chart_legend').show('slow');
+                    $('.chart_buttons').toggle();
+            });
+	    });
+    </script>
+    <script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/report_chart.js"></script>
+{% endblock %}
+
+{% block content_title %}
+	{{ block.super }}
+	| <a href="{{ report.get_absolute_url }}">{{ report }}</a>
+{% endblock %}
+
+{% block content %}
+	<p><a href="{{ report.file.url }}">Download the report file</a></p>
+	<br />
+    <h4>Current Iteration</h4>
+    <table cellspacing="0" border="1" class="objects_list">
+        <tr>
+        	<th>Name</th>
+        	<th>Provisional Start</th>
+	        <th>Provisional End</th>
+	        <th>Effective Start</th>
+	        <th>Effective End</th>
+	        <th>Total Subjects</th>
+	        <th>Total Replies</th>
+        </tr>
+        <tr>
+            <td><a href="{{ report.current_iteration.get_absolute_url }}">{{ report.current_iteration }}</a></td>
+            <td>{{ report.current_iteration.provisional_start_date|date:"d/m/Y" }}</td>
+            <td>{{ report.current_iteration.provisional_end_date|date:"d/m/Y" }}</td>
+            <td>{{ report.current_iteration.effective_start_date|date:"d/m/Y" }}</td>
+            <td>{{ report.current_iteration.effective_end_date|date:"d/m/Y" }}</td>
+            <td>{{ report.current_iteration.total_subjects }}</td>
+            <td>{{ report.current_iteration.total_replies }}</td>
+        </tr>
+    </table>
+    <br />
+    <p class="bold">--- Description:</p>
+    <div>{{ report.current_iteration.description|safe }}</div>
+    <br />
+    <p class="bold">--- Timetable:</p>
+    <button class="timetable_buttons" id="show">Show timetable</button>
+    <button class="timetable_buttons" id="hide">Hide timetable</button>
+    <div class="timetable_div">
+    <br />
+    {% timetable elements_list %}
+    <br />
+    </div>
+    <br />
+    <p class="bold">--- Chart:</p>
+    <button class="chart_buttons" id="show_chart">Show chart</button>
+    <button class="chart_buttons" id="hide_chart">Hide chart</button> 
+    <div id="chart_div"></div>
+    <br />
+    <table id="chart_legend">
+    	<tr><th colspan="2">Legend</th></tr>
+    	<tr><td style="background-color: #FF0000; padding: 0.5em 1em;">&nbsp;</td><td style="padding: 0.5em 1em;">Open Subjects</td></tr>
+    	<tr><td style="background-color: #FF9900; padding: 0.5em 1em;">&nbsp;</td><td style="padding: 0.5em 1em;">Closed [Unsolved] Subjects</td></tr>
+    	<tr><td style="background-color: #CCFF00; padding: 0.5em 1em;">&nbsp;</td><td style="padding: 0.5em 1em;">Closed [Solved] Subjects</td></tr>
+    </table>
+    <table id="chart_table">
+    	{% for item in chart_table %}
+    	<tr>
+    		<th scope="row">{{ item.label }}</th>
+    		<td>{{ item.value }}</td>
+    	</tr>
+    	{% endfor %}
+    </table>
+    <br /><br />
+    <h4>New subjects (last 2 days)</h4>
+    <table cellspacing="0" border="1" class="objects_list">
+        <tr>
+        	<th>Name</th>
+        	<th>Author</th>
+	        <th>State</th>
+	        <th>Posted At</th>
+	        <th>Total Replies</th>
+        </tr>
+        {% for ns in new_subjects.subjects %}
+        <tr>
+            <td><a href="{{ ns.url }}">{{ ns.name }}</a></td>
+            <td>{{ ns.author }}</td>
+            <td>{{ ns.state }}</td>
+            <td>{{ ns.posted_at }}</td>
+            <td>{{ ns.total_replies }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+        	<td colspan="5">No new subject</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br />
+    <table cellspacing="0" border="1" class="objects_list">
+    	<tr>
+        	<td class="bold">Total</td>
+        	<td class="bold">Subjects:</td>
+        	<td>{{ new_subjects.total }}</td>
+        	<td class="bold">Replies:</td>
+        	<td>{{ new_subjects.replies }}</td>
+        </tr>
+    </table>
+    <br /><br />
+    <h4>Open subjects</h4>
+    <table cellspacing="0" border="1" class="objects_list">
+        <tr>
+        	<th>Name</th>
+        	<th>Author</th>
+	        <th>Posted At</th>
+	        <th>Total Replies</th>
+        </tr>
+        {% for ops in open_subjects.subjects %}
+        <tr>
+            <td><a href="{{ ops.url }}">{{ ops.name }}</a></td>
+            <td>{{ ops.author }}</td>
+            <td>{{ ops.posted_at }}</td>
+            <td>{{ ops.total_replies }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+        	<td colspan="5">No open subject</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br />
+    <table cellspacing="0" border="1" class="objects_list">
+    	<tr>
+        	<td class="bold">Total</td>
+        	<td class="bold">Subjects:</td>
+        	<td>{{ open_subjects.total }}</td>
+        	<td class="bold">Replies:</td>
+        	<td>{{ open_subjects.replies }}</td>
+        </tr>
+    </table>
+    <br /><br />
+    <h4>Closed [Solved] subjects</h4>
+    <table cellspacing="0" border="1" class="objects_list">
+        <tr>
+        	<th>Name</th>
+        	<th>Author</th>
+	        <th>Posted At</th>
+	        <th>Total Replies</th>
+        </tr>
+        {% for css in closed_solved_subjects.subjects %}
+        <tr>
+            <td><a href="{{ css.url }}">{{ css.name }}</a></td>
+            <td>{{ css.author }}</td>
+            <td>{{ css.posted_at }}</td>
+            <td>{{ css.total_replies }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+        	<td colspan="5">No closed solved subject</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br />
+    <table cellspacing="0" border="1" class="objects_list">
+    	<tr>
+        	<td class="bold">Total</td>
+        	<td class="bold">Subjects:</td>
+        	<td>{{ closed_solved_subjects.total }}</td>
+        	<td class="bold">Replies:</td>
+        	<td>{{ closed_solved_subjects.replies }}</td>
+        </tr>
+    </table>
+    <br /><br />
+    <h4>Closed [Unsolved] subjects</h4>
+    <table cellspacing="0" border="1" class="objects_list">
+        <tr>
+        	<th>Name</th>
+        	<th>Author</th>
+	        <th>Posted At</th>
+	        <th>Total Replies</th>
+        </tr>
+        {% for cus in closed_unsolved_subjects.subjects %}
+        <tr>
+            <td><a href="{{ cus.url }}">{{ cus.name }}</a></td>
+            <td>{{ cus.author }}</td>
+            <td>{{ cus.posted_at }}</td>
+            <td>{{ cus.total_replies }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+        	<td colspan="5">No closed unsolved subject</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br />
+    <table cellspacing="0" border="1" class="objects_list">
+    	<tr>
+        	<td class="bold">Total</td>
+        	<td class="bold">Subjects:</td>
+        	<td>{{ closed_unsolved_subjects.total }}</td>
+        	<td class="bold">Replies:</td>
+        	<td>{{ closed_unsolved_subjects.replies }}</td>
+        </tr>
+    </table>
+{% endblock %}
+
+{% block contextual_actions_menu %}
+	<li><a href="{% url 'reports-list' project.slug %}">Back to reports list</a></li>
+	{{ block.super }}
+{% endblock %}

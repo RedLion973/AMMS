@@ -1,3 +1,4 @@
+import ast
 from django.views.generic import ListView, DetailView, CreateView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -17,7 +18,7 @@ class ReportListView(PermissionRequiredMixin, ListView):
     template_name = "steering/reports_list.html"
     
     def get_queryset(self, **kwargs):
-        return Report.objects.filter(project=Project.objects.get(slug=self.kwargs['project_slug']))
+        return Report.objects.filter(project=Project.objects.get(slug=self.kwargs['project_slug'])).order_by('-date')
     
     def get_object(self, **kwargs):
         object = Project.objects.get(slug=self.kwargs['project_slug'])
@@ -26,7 +27,8 @@ class ReportListView(PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(ReportListView, self).get_context_data(**kwargs)
         context.update({
-            'project': self.get_object()
+            'project': self.get_object(),
+            'last_report': Report.objects.filter(project=Project.objects.get(slug=self.kwargs['project_slug'])).order_by('-date')[0]
         })
         return context
 
@@ -42,8 +44,40 @@ class ReportDetailView(PermissionRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(ReportDetailView, self).get_context_data(**kwargs)
+        elements_list = []
+        elements_list.append(self.object.current_iteration)
+        new_subjects = ast.literal_eval(self.object.new_subjects)
+        open_subjects = ast.literal_eval(self.object.open_subjects)
+        closed_solved_subjects = ast.literal_eval(self.object.closed_solved_subjects)
+        closed_unsolved_subjects = ast.literal_eval(self.object.closed_unsolved_subjects)
+        chart_table = []
+        item_open = {}
+        item_open.update({
+            'label': 'Open',
+            'value': str(float(open_subjects['total']) / float(self.object.current_iteration.total_subjects) * 100) + '%'
+        })
+        chart_table.append(item_open)
+        item_closed_u = {}
+        item_closed_u.update({
+            'label': 'Unsolved',
+            'value': str(float(closed_unsolved_subjects['total']) / float(self.object.current_iteration.total_subjects) * 100) + '%'
+        })
+        chart_table.append(item_closed_u)
+        item_closed_s = {}
+        item_closed_s.update({
+            'label': 'Solved',
+            'value': str(float(closed_solved_subjects['total']) / float(self.object.current_iteration.total_subjects) * 100) + '%'
+        })
+        chart_table.append(item_closed_s)
+        print chart_table
         context.update({
-            'project': Project.objects.get(slug=self.kwargs['project_slug'])
+            'project': Project.objects.get(slug=self.kwargs['project_slug']),
+            'elements_list': elements_list,
+            'new_subjects': new_subjects,
+            'open_subjects': open_subjects,
+            'closed_solved_subjects': closed_solved_subjects,
+            'closed_unsolved_subjects': closed_unsolved_subjects,
+            'chart_table': chart_table
         })
         return context
 

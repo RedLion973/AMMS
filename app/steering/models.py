@@ -190,11 +190,11 @@ class Report(models.Model):
     file = models.FileField(u'report file', upload_to='report_files/')
  
     def __unicode__(self):
-        return u'Report - %s' % (self.date)
+        return u'Report of %s' % (self.date.strftime("%d/%m/%y"))
     
     @models.permalink
     def get_absolute_url(self):
-        return ('project-detail', [str(self.project.slug), str(self.id)])
+        return ('report-detail', [str(self.project.slug), str(self.id)])
     
     def generate_excel_file(self):
         wb = Workbook()
@@ -223,7 +223,6 @@ class Report(models.Model):
         title.font = font_title
         title.alignment = align_right
         title_date = XFStyle()
-        title_date.num_format_str = 'DD-MM-YY'
         title_date.font = font_title
         title_date.alignment = align_left
         subtitle = XFStyle()
@@ -249,19 +248,18 @@ class Report(models.Model):
         font_normal.height = 200
         normal.font = font_normal
         normal.alignment = align_center
-        normal_date = XFStyle()
-        normal_date.num_format_str = 'M/D/YY'
-        normal_date.font = font_normal
-        normal_date.alignment = align_center
-        normal_datetime = XFStyle()
-        normal_datetime.num_format_str = 'M/D/YY h:mm'
-        normal_datetime.font = font_normal
-        normal_datetime.alignment = align_center
-        
+        normal_link = XFStyle()
+        font_normal_link = Font()
+        font_normal_link.name = 'Arial'
+        font_normal_link.height = 200
+        font_normal_link.colour_index = 0x3A
+        font_normal_link.underline = Font.UNDERLINE_SINGLE
+        normal_link.font = font_normal_link
+        normal_link.alignment = align_center         
         # writing
         n = "HYPERLINK"
-        sheet.write(0, 1, self.project.name + ' - Report:', title)
-        sheet.write(0, 2, self.date, title_date)
+        sheet.write(0, 1, self.project.name + ' - Daily Report:', title)
+        sheet.write(0, 2, self.date.strftime("%d/%m/%y"), title_date)
         sheet.write(2, 0, 'Current iteration', subtitle)
         sheet.write(4, 0, 'Name', header)
         sheet.write(4, 1, 'URL', header)
@@ -272,27 +270,31 @@ class Report(models.Model):
         sheet.write(4, 6, 'Total Subjects', header)
         sheet.write(4, 7, 'Total Replies', header)
         sheet.write(5, 0, self.current_iteration.name, normal)
-        sheet.write(5, 1, Formula(n + '("http://' + Site.objects.get_current().domain + str(self.current_iteration.get_absolute_url()) + '")'), normal)
-        sheet.write(5, 2, self.current_iteration.provisional_start_date, normal_date)
-        sheet.write(5, 3, self.current_iteration.provisional_end_date, normal_date)
-        sheet.write(5, 4, self.current_iteration.effective_start_date, normal_date)
-        sheet.write(5, 5, self.current_iteration.effective_end_date, normal_date)
+        sheet.write(5, 1, Formula(n + '("http://' + Site.objects.get_current().domain + str(self.current_iteration.get_absolute_url()) + '","Link")'), normal_link)
+        sheet.write(5, 2, self.current_iteration.provisional_start_date.strftime("%d/%m/%y"), normal)
+        sheet.write(5, 3, self.current_iteration.provisional_end_date.strftime("%d/%m/%y"), normal)
+        sheet.write(5, 4, self.current_iteration.effective_start_date.strftime("%d/%m/%y"), normal)
+        sheet.write(5, 5, self.current_iteration.effective_end_date.strftime("%d/%m/%y"), normal)
         sheet.write(5, 6, self.current_iteration.total_subjects, normal)
         sheet.write(5, 7, self.current_iteration.total_replies, normal)
         ns = ast.literal_eval(self.new_subjects)
-        sheet.write(7, 0, 'New subjects (posted during the last 3 days)', subtitle)
+        sheet.write(7, 0, 'New subjects (last 2 days)', subtitle)
         sheet.write(7, 1, 'Total subjects: ' + str(ns['total']), subtitle)
         sheet.write(7, 2, 'Total replies: ' + str(ns['replies']), subtitle)
         sheet.write(9, 0, 'Name', header)
-        sheet.write(9, 1, 'Posted At', header)
-        sheet.write(9, 2, 'State', header)
-        sheet.write(9, 3, 'Total Replies', header)
+        sheet.write(9, 1, 'URL', header)
+        sheet.write(9, 2, 'Author', header)
+        sheet.write(9, 3, 'Posted At', header)
+        sheet.write(9, 4, 'State', header)
+        sheet.write(9, 5, 'Total Replies', header)
         line = 10
         for s in ns['subjects']:
             sheet.write(line, 0, s['name'], normal)
-            sheet.write(line, 1, s['posted_at'], normal_datetime)
-            sheet.write(line, 2, s['state'], normal)
-            sheet.write(line, 3, s['total_replies'], normal)
+            sheet.write(line, 1, Formula(n + '("http://' + Site.objects.get_current().domain + str(s['url']) + '","Link")'), normal_link)
+            sheet.write(line, 2, s['author'], normal)
+            sheet.write(line, 3, s['posted_at'], normal)
+            sheet.write(line, 4, s['state'], normal)
+            sheet.write(line, 5, s['total_replies'], normal)
             line += 1
         line += 1
         ops = ast.literal_eval(self.open_subjects)
@@ -301,13 +303,17 @@ class Report(models.Model):
         sheet.write(line, 2, 'Total replies: ' + str(ops['replies']), subtitle)
         line += 2
         sheet.write(line, 0, 'Name', header)
-        sheet.write(line, 1, 'Posted At', header)
-        sheet.write(line, 2, 'Total Replies', header)
+        sheet.write(line, 1, 'URL', header)
+        sheet.write(line, 2, 'Author', header)
+        sheet.write(line, 3, 'Posted At', header)
+        sheet.write(line, 4, 'Total Replies', header)
         line += 1
         for s in ops['subjects']:
             sheet.write(line, 0, s['name'], normal)
-            sheet.write(line, 1, s['posted_at'], normal_datetime)
-            sheet.write(line, 2, s['total_replies'], normal)
+            sheet.write(line, 1, Formula(n + '("http://' + Site.objects.get_current().domain + str(s['url']) + '","Link")'), normal_link)
+            sheet.write(line, 2, s['author'], normal)
+            sheet.write(line, 3, s['posted_at'], normal)
+            sheet.write(line, 4, s['total_replies'], normal)
             line += 1
         line += 1
         css = ast.literal_eval(self.closed_solved_subjects)
@@ -316,13 +322,17 @@ class Report(models.Model):
         sheet.write(line, 2, 'Total replies: ' + str(css['replies']), subtitle)
         line += 2
         sheet.write(line, 0, 'Name', header)
-        sheet.write(line, 1, 'Posted At', header)
-        sheet.write(line, 2, 'Total Replies', header)
+        sheet.write(line, 1, 'URL', header)
+        sheet.write(line, 2, 'Author', header)
+        sheet.write(line, 3, 'Posted At', header)
+        sheet.write(line, 4, 'Total Replies', header)
         line += 1
         for s in css['subjects']:
             sheet.write(line, 0, s['name'], normal)
-            sheet.write(line, 1, s['posted_at'], normal_datetime)
-            sheet.write(line, 2, s['total_replies'], normal)
+            sheet.write(line, 1, Formula(n + '("http://' + Site.objects.get_current().domain + str(s['url']) + '","Link")'), normal_link)
+            sheet.write(line, 2, s['author'], normal)
+            sheet.write(line, 3, s['posted_at'], normal)
+            sheet.write(line, 4, s['total_replies'], normal)
             line += 1
         line += 1
         cus = ast.literal_eval(self.closed_unsolved_subjects)
@@ -331,13 +341,17 @@ class Report(models.Model):
         sheet.write(line, 2, 'Total replies: ' + str(cus['replies']), subtitle)
         line += 2
         sheet.write(line, 0, 'Name', header)
-        sheet.write(line, 1, 'Posted At', header)
-        sheet.write(line, 2, 'Total Replies', header)
+        sheet.write(line, 1, 'URL', header)
+        sheet.write(line, 2, 'Author', header)
+        sheet.write(line, 3, 'Posted At', header)
+        sheet.write(line, 4, 'Total Replies', header)
         line += 1
         for s in cus['subjects']:
             sheet.write(line, 0, s['name'], normal)
-            sheet.write(line, 1, s['posted_at'], normal_datetime)
-            sheet.write(line, 2, s['total_replies'], normal)
+            sheet.write(line, 1, Formula(n + '("http://' + Site.objects.get_current().domain + str(s['url']) + '","Link")'), normal_link)
+            sheet.write(line, 2, s['author'], normal)
+            sheet.write(line, 3, s['posted_at'], normal)
+            sheet.write(line, 4, s['total_replies'], normal)
             line += 1
         line += 1
         sheet.write(line, 0, 'Completed iterations', header)
@@ -352,7 +366,7 @@ class Report(models.Model):
         wb.save(os.path.join(settings.BASE_DIR, 'tmp/report.xls'))
         f = open(os.path.join(settings.BASE_DIR, 'tmp/report.xls'), 'r')
         report_file = File(f)
-        self.file.save(self.project.name + '_report_' + str(self.date) + '.xls', report_file, save=True)
+        self.file.save(self.project.name + '_Daily-Report_' + str(self.date) + '.xls', report_file, save=True)
         report_file.close()
         f.close()
         os.remove(os.path.join(settings.BASE_DIR, 'tmp/report.xls'))
@@ -399,7 +413,7 @@ def generate_report(project):
     except Report.DoesNotExist:
         try:
             current_iteration = Iteration.objects.get(project=project, current=1)
-            new_subjects_list = Subject.objects.filter(iteration=current_iteration, created_at__gte=(today - timedelta(days=3)))
+            new_subjects_list = Subject.objects.filter(iteration=current_iteration, created_at__gte=(today - timedelta(days=2)))
             new_subjects = {}
             total_replies = 0
             subjects = []
@@ -407,7 +421,9 @@ def generate_report(project):
                 subjects.append({
                     'name': ns.name,
                     'state': ns.state.name,
-                    'posted_at': str(ns.created_at),
+                    'url': ns.get_absolute_url(),
+                    'author': ns.author.full_name,
+                    'posted_at': ns.created_at.strftime("%d/%m/%y %H:%M"),
                     'total_replies': ns.total_replies
                 })
                 total_replies += ns.total_replies
@@ -423,7 +439,9 @@ def generate_report(project):
             for ops in open_subjects_list:
                 subjects.append({
                     'name': ops.name,
-                    'posted_at': str(ops.created_at),
+                    'url': ops.get_absolute_url(),
+                    'author': ops.author.full_name,
+                    'posted_at': ops.created_at.strftime("%d/%m/%y %H:%M"),
                     'total_replies': ops.total_replies
                 })
                 total_replies += ops.total_replies
@@ -439,7 +457,9 @@ def generate_report(project):
             for css in closed_solved_subjects_list:
                 subjects.append({
                     'name': css.name,
-                    'posted_at': str(css.created_at),
+                    'url': css.get_absolute_url(),
+                    'author': css.author.full_name,
+                    'posted_at': css.created_at.strftime("%d/%m/%y %H:%M"),
                     'total_replies': css.total_replies
                 })
                 total_replies += css.total_replies
@@ -455,7 +475,9 @@ def generate_report(project):
             for cus in closed_unsolved_subjects_list:
                 subjects.append({
                     'name': cus.name,
-                    'posted_at': str(cus.created_at),
+                    'url': cus.get_absolute_url(),
+                    'author': cus.author.full_name,
+                    'posted_at': cus.created_at.strftime("%d/%m/%y %H:%M"),
                     'total_replies': cus.total_replies
                 })
                 total_replies += cus.total_replies

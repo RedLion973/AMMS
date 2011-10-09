@@ -60,6 +60,10 @@ ul, ol {
 	font-style: italic;
 }
 
+.left {
+	text-align: left;
+}
+
 .green {
 	color: #25963A !important;
 }
@@ -114,10 +118,6 @@ ul, ol {
 	width: 50%;
 }
 
-.list {
-	list-style: inside;
-}
-
 .objects_list th {
 	padding: 0.5em 0.6em;
 	background-color: #F7F7F7;
@@ -161,7 +161,7 @@ ul, ol {
 .timetable th.timetable_element_name {
         padding: 0.2em 1em;
 }
-.timetable_buttons span {
+.timetable_buttons span, .chart_buttons span {
         font-size: 0.8em !important;
 }
 
