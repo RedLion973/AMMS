@@ -13,7 +13,7 @@ from django.conf import settings
 from app.core.models import Project, ProjectActor
 from app.steering import fields
 from thirdparty.guardian.shortcuts import assign
-from thirdparty.xlwt import Workbook, XFStyle, Font
+from thirdparty.xlwt import Workbook, XFStyle, Font, Alignment, Formula, Pattern
 
 class Tag(models.Model):
     name = models.SlugField(u'name', unique=True)
@@ -201,39 +201,65 @@ class Report(models.Model):
         sheet_title = self.project.name + ' - Report'
         sheet = wb.add_sheet(sheet_title)
         # styles & fonts definitions
+        pattern = Pattern()
+        pattern.pattern = pattern.SOLID_PATTERN
+        pattern.pattern_fore_color = 0x09
+        pattern.pattern_back_color = 0x3A
+        align_center = Alignment()
+        align_center.horz = Alignment.HORZ_CENTER
+        align_center.vert = Alignment.VERT_CENTER
+        align_left = Alignment()
+        align_left.horz = Alignment.HORZ_LEFT
+        align_left.vert = Alignment.VERT_CENTER
+        align_right = Alignment()
+        align_right.horz = Alignment.HORZ_RIGHT
+        align_right.vert = Alignment.VERT_CENTER
         title = XFStyle()
         font_title = Font()
         font_title.name = 'Arial'
         font_title.bold = True
         font_title.height = 400
+        font_title.colour_index = 0x3A
         title.font = font_title
+        title.alignment = align_right
         title_date = XFStyle()
         title_date.num_format_str = 'DD-MM-YY'
         title_date.font = font_title
+        title_date.alignment = align_left
         subtitle = XFStyle()
         font_subtitle = Font()
         font_subtitle.name = 'Arial'
         font_subtitle.bold = True
         font_subtitle.height = 300
+        font_subtitle.colour_index = 0x3A
         subtitle.font = font_subtitle
+        subtitle.alignment = align_right
         header = XFStyle()
         font_header = Font()
         font_header.name = 'Arial'
         font_header.bold = True
-        font_header.height = 230
+        font_header.height = 250
+        font_header.colour_index = 0x09
         header.font = font_header
+        header.alignment = align_center
+        header.pattern = pattern
         normal = XFStyle()
         font_normal = Font()
         font_normal.name = 'Arial'
-        font_normal.height = 190
+        font_normal.height = 200
         normal.font = font_normal
+        normal.alignment = align_center
         normal_date = XFStyle()
-        normal_date.num_format_str = 'D/M/YY'
+        normal_date.num_format_str = 'M/D/YY'
         normal_date.font = font_normal
+        normal_date.alignment = align_center
         normal_datetime = XFStyle()
-        normal_datetime.num_format_str = 'D/M/YY h:mm'
+        normal_datetime.num_format_str = 'M/D/YY h:mm'
         normal_datetime.font = font_normal
+        normal_datetime.alignment = align_center
+        
         # writing
+        n = "HYPERLINK"
         sheet.write(0, 1, self.project.name + ' - Report:', title)
         sheet.write(0, 2, self.date, title_date)
         sheet.write(2, 0, 'Current iteration', subtitle)
@@ -246,7 +272,7 @@ class Report(models.Model):
         sheet.write(4, 6, 'Total Subjects', header)
         sheet.write(4, 7, 'Total Replies', header)
         sheet.write(5, 0, self.current_iteration.name, normal)
-        sheet.write(5, 1, 'http://' + Site.objects.get_current().domain + str(self.current_iteration.get_absolute_url()), normal)
+        sheet.write(5, 1, Formula(n + '("http://' + Site.objects.get_current().domain + str(self.current_iteration.get_absolute_url()) + '")'), normal)
         sheet.write(5, 2, self.current_iteration.provisional_start_date, normal_date)
         sheet.write(5, 3, self.current_iteration.provisional_end_date, normal_date)
         sheet.write(5, 4, self.current_iteration.effective_start_date, normal_date)
@@ -281,7 +307,7 @@ class Report(models.Model):
         for s in ops['subjects']:
             sheet.write(line, 0, s['name'], normal)
             sheet.write(line, 1, s['posted_at'], normal_datetime)
-            sheet.write(line, 3, s['total_replies'], normal)
+            sheet.write(line, 2, s['total_replies'], normal)
             line += 1
         line += 1
         css = ast.literal_eval(self.closed_solved_subjects)
@@ -296,7 +322,7 @@ class Report(models.Model):
         for s in css['subjects']:
             sheet.write(line, 0, s['name'], normal)
             sheet.write(line, 1, s['posted_at'], normal_datetime)
-            sheet.write(line, 3, s['total_replies'], normal)
+            sheet.write(line, 2, s['total_replies'], normal)
             line += 1
         line += 1
         cus = ast.literal_eval(self.closed_unsolved_subjects)
@@ -311,22 +337,25 @@ class Report(models.Model):
         for s in cus['subjects']:
             sheet.write(line, 0, s['name'], normal)
             sheet.write(line, 1, s['posted_at'], normal_datetime)
-            sheet.write(line, 3, s['total_replies'], normal)
+            sheet.write(line, 2, s['total_replies'], normal)
             line += 1
         line += 1
         sheet.write(line, 0, 'Completed iterations', header)
         for i in self.completed_iterations.all():
             sheet.write(line, 1, i.name, normal)
             line += 1
-        line += 1
+        line += 2
         sheet.write(line, 0, 'Upcoming iterations', header)
         for i in self.upcoming_iterations.all():
             sheet.write(line, 1, i.name, normal)
             line += 1
         wb.save(os.path.join(settings.BASE_DIR, 'tmp/report.xls'))
-#            f = open(os.path.join(settings.BASE_DIR, 'tmp/report.xls'), 'w')
-#            report_file = File(f)
-#            report.file.save(project.name + '_report_' + str(report.date) + '.xls', report_file, save=True)
+        f = open(os.path.join(settings.BASE_DIR, 'tmp/report.xls'), 'r')
+        report_file = File(f)
+        self.file.save(self.project.name + '_report_' + str(self.date) + '.xls', report_file, save=True)
+        report_file.close()
+        f.close()
+        os.remove(os.path.join(settings.BASE_DIR, 'tmp/report.xls'))
 
     class Meta:
         verbose_name = u'Report'
