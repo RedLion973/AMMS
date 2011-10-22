@@ -1,0 +1,1 @@
+{% load i18n %}The {{ report }} has been generated. See more here : http://{{ current_site }}{{ report.get_absolute_url }}.

@@ -47,7 +47,7 @@ ul, ol {
 .tag_item {
         cursor: pointer;
         padding: 0.5em !important;
-        max-width: 70px;
+        width: auto;
         text-align: center;
         font-size: 0.8em;
 }

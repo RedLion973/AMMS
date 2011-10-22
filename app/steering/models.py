@@ -111,7 +111,7 @@ class Iteration(models.Model):
     class Meta:
         verbose_name = u'Iteration'
         verbose_name_plural = u'Iterations'
-        unique_together = (('name', 'project'), ('rank', 'project'), ('current', 'project'))
+        unique_together = (('name', 'project'), ('rank', 'project'))
         ordering = ['rank']
         permissions = (
             ('view_iteration', 'View iteration'),
@@ -386,24 +386,10 @@ post_save.connect(create_report_permissions, sender=Report)
         
 def create_state(name, rank, type, icon, verbosity=1):
     try:
-        state = State.objects.get(name=name)
-        updated = False
-        if rank != state.rank:
-            state.rank = rank
-            updated = True
-        if type != state.type:
-            state.type = type
-            updated = True
-        if icon != state.icon:
-            state.icon = icon
-            updated = True
-        if updated:
-            state.save()
-            if verbosity > 1:
-                print "Updated %s State" % name
+        State.objects.get(name=name)
     except State.DoesNotExist:
         State(name=name, rank=rank, type=type, icon=icon).save()
-        if verbosity > 1:
+        if verbosity == 1:
             print "Created %s State" % name
 
 def generate_report(project):
@@ -503,6 +489,8 @@ def generate_report(project):
                     report.completed_iterations.add(iter)
             report.save()
             report.generate_excel_file()
-        except Iteration.DoesNotExist:
-            pass
+            return report.id
+        except:
+            return None
+            
         

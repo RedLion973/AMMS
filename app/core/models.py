@@ -1,6 +1,7 @@
+import os
 from django.db import models
 from django.contrib.auth.models import User, Group
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.template import defaultfilters
 from thirdparty.guardian.shortcuts import assign
 
@@ -37,6 +38,7 @@ class Project(models.Model):
     name = models.CharField(u'name', max_length=255, unique=True)
     slug = models.SlugField(u'slug', editable=False, blank=True)
     description = models.TextField(u'description')
+    enable_reports_generation = models.BooleanField(u'enable reports generation', default=1)
     
     def save(self, *args, **kwargs):
         self.slug = defaultfilters.slugify(self.name)
@@ -61,6 +63,60 @@ def create_group_and_project_permissions(sender, instance, created, **kwargs):
     assign('view_project', group, instance)
                 
 post_save.connect(create_group_and_project_permissions, sender=Project)
+
+class Document(models.Model):
+    name = models.CharField(u'name', max_length=255)
+    description = models.TextField(u'description')
+    project = models.ForeignKey(Project, verbose_name=u'project', related_name=u'documents')
+    
+    def last_version(self):
+        return Version.objects.filter(document=self).order_by('-version')[0]
+    
+    def __unicode__(self):
+        return u'%s' % (self.name)
+    
+    @models.permalink
+    def get_absolute_url(self):
+        return ('document-detail', [str(self.project.slug), str(self.id)])
+    
+    class Meta:
+        verbose_name = u'Document'
+        verbose_name_plural = u'Documents'
+        permissions = (
+            ('view_document', 'View document'),
+        )
+
+def create_document_permissions(sender, instance, created, **kwargs):
+    group = Group.objects.get(name=instance.project.name)
+    assign('view_document', group, instance)
+        
+post_save.connect(create_document_permissions, sender=Document)
+
+def ref_doc_version(instance, filename):
+    fname, dot, extension = filename.rpartition('.')
+    slug = defaultfilters.slugify(instance.document.name)
+    return 'ref_documents/%s/%s_v%s.%s' % (instance.document.project.slug, slug, instance.version, extension)  
+    
+class Version(models.Model):
+    document = models.ForeignKey(Document, verbose_name=u'document', related_name=u'versions')
+    file = models.FileField(u'file', upload_to=ref_doc_version)
+    heavy_update = models.BooleanField(u'weight', default=0)
+    version = models.CharField(u'version', max_length=10, default='1.0', editable=False)
+    
+    def __unicode__(self):
+        return u'%s' % (self.version)
+    
+def set_version(sender, instance, **kwargs):
+    if instance.document.versions.all().count() > 1:
+        print "ok"
+        last_version = instance.document.last_version().version.split('.')
+        print last_version
+        if instance.heavy_update == 0:
+            instance.version =  last_version[0] + '.' + str(int(last_version[1]) + 1)
+        else:
+            instance.version =  str(int(last_version[0]) + 1) + '.0' 
+
+pre_save.connect(set_version, sender=Version)
         
 class ProjectRole(models.Model):
     name = models.CharField(u'name', max_length=255, unique=True)

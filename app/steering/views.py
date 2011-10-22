@@ -69,7 +69,6 @@ class ReportDetailView(PermissionRequiredMixin, DetailView):
             'value': str(float(closed_solved_subjects['total']) / float(self.object.current_iteration.total_subjects) * 100) + '%'
         })
         chart_table.append(item_closed_s)
-        print chart_table
         context.update({
             'project': Project.objects.get(slug=self.kwargs['project_slug']),
             'elements_list': elements_list,
@@ -131,8 +130,7 @@ class SubjectCreateView(PermissionRequiredMixin, CreateView):
             from thirdparty.notification import models as notification
             to_users = []
             for actor in project.actors.all():
-                if actor != subject.author:
-                    to_users.append(actor.user)
+                to_users.append(actor.user)
             notification.queue(to_users, "new_subject_posted", {'subject': subject})
         return HttpResponseRedirect(subject.get_absolute_url())
     
@@ -185,8 +183,7 @@ class ReplyCreateView(PermissionRequiredMixin, CreateView):
             from thirdparty.notification import models as notification
             to_users = []
             for actor in project.actors.all():
-                if actor != reply.author:
-                    to_users.append(actor.user)
+                to_users.append(actor.user)
             notification.queue(to_users, "new_reply_posted", {'reply': reply})
         return HttpResponseRedirect(reply.subject.get_absolute_url())
 

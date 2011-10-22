@@ -34,6 +34,8 @@
 {% endblock %}
 
 {% block content %}
+	<p><img src="{{ iteration.state.icon.url }}" /> {{ iteration.state }}</p>
+    <br />
 	<div>{{ iteration.description|safe }}</div>
 	<br />
     <h4>Timetable</h4>

@@ -28,7 +28,7 @@
 
 {% block content %}
 	<p>{{ project.description }}</p>
-	<p><a href="{% url 'reports-list' project.slug %}">See reports list</a></p>
+	{% if project.reports.all %}<p><a href="{% url 'reports-list' project.slug %}">See reports list</a></p>{% endif %}
 	<br /><br />
     <h4>Timetable</h4>
     <button class="timetable_buttons" id="show">Show timetable</button>
@@ -48,6 +48,17 @@
             <td><a href="{{ iteration.get_absolute_url }}">{{ iteration.name }}</a></td>
             <td style="text-align: left;">{{ iteration.description|safe }}</td>
             <td>{{ iteration.state }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br />
+    <h4>Documents</h4>
+    <table cellspacing="0" border="1" class="objects_list">
+        <tr><th>Name</th><th>Last Version</th></tr>
+        {% for document in documents %}
+        <tr>
+            <td><a href="#">{{ document.name }}</a></td>
+            <td>{{ document.last_version }} - <a href="{{ document.last_version.file.url }}">Download</a></td>
         </tr>
         {% endfor %}
     </table>

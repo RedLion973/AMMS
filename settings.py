@@ -202,8 +202,8 @@ TINYMCE_DEFAULT_CONFIG = {
 }
 
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_PASSWORD = 'riddim973++'
-EMAIL_HOST_USER = 'ludovic.legendart@gmail.com'
+EMAIL_HOST_PASSWORD = 'Riddimz@reMiLife'
+EMAIL_HOST_USER = 'amms.green.conseil@gmail.com'
 EMAIL_PORT = 587
 EMAIL_SUBJECT_PREFIX = '[GREEN Conseil, AMMS System] '
 EMAIL_USE_TLS = True
